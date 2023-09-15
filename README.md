@@ -1,3 +1,33 @@
 # README
 
 Hello, world!
+
+## Schema
+
+### Hymn
+
+| Attribute                     | Description                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Necessary / Easy**          |                                                                                                      |
+| Language                      | English for now (Key #1)                                                                             |
+| Number                        | (Key #2)                                                                                             |
+| Name                          |                                                                                                      |
+| Group                         | Sacrament, Christmas, etc.                                                                           |
+| Descriptor                    | Adjective listed at the top of the page                                                              |
+| Number of verses              |                                                                                                      |
+| Number of in-staff verses     | [Ex:](https://www.churchofjesuschrist.org/study/manual/hymns/an-angel-from-on-high?lang=eng) 3 vs. 5 |
+| Text author                   |                                                                                                      |
+| Music author                  |                                                                                                      |
+| Additional notes              | Notes lol                                                                                            |
+| **Useful**                    |                                                                                                      |
+| Local popularity metric       | Metric from Beaver Creek Ward Google Sheet                                                           |
+| Church-wide popularity metric | Metric pulled from the last 10 years of conference talks                                             |
+| **Nice to have**              |                                                                                                      |
+| Gospel Library Availability   | ENUM: AVAILABLE, ONLY MUSIC, ONLY LYRICS, UNAVAILABLE                                                |
+| Total Beats                   |                                                                                                      |
+| BPM Min                       |                                                                                                      |
+| BPM Max                       |                                                                                                      |
+| Estimated Length Min          | Calculated                                                                                           |
+| Estimated Length Max          | Calculated                                                                                           |
+| Estimated Length Average      | Calculated                                                                                           |
+
