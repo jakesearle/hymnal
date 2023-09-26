@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/andybalholm/cascadia"
@@ -40,6 +41,15 @@ func GetText(n *html.Node) string {
 		return n.Data
 	}
 	return GetText(n.FirstChild)
+}
+
+func GetInt(n *html.Node) int {
+	ret, err := strconv.Atoi(GetText(n))
+	if err != nil {
+		fmt.Println("Error parsing string to int:", err)
+		panic(err)
+	}
+	return ret
 }
 
 func example() {

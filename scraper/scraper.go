@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/list"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +14,8 @@ import (
 
 const cacheDir = "cache"
 const baseUrl = "https://www.churchofjesuschrist.org"
+const authorPath = "/study/manual/using-the-hymnbook/authors-and-composers?lang=eng"
+const hymnListingPath = "/study/manual/hymns?lang=eng"
 
 type HymnEntry struct {
 	Index          int
@@ -30,16 +31,50 @@ type HymnEntry struct {
 	Url            string
 }
 
-func main() {
-	hymns := getHymnInfo()
-	saveHymns(hymns)
+type Author struct {
+	Name    string
+	Credits []int
 }
 
-func getHymnInfo() *list.List {
-	noteMap := importNotes()
-	requestUrl := baseUrl + "/study/manual/hymns?lang=eng"
+func main() {
+	authors := getAuthors()
+	SaveAuthors(authors, "authors")
+	// hymns := getHymnInfo()
+	// saveHymns(hymns, "hymns")
+}
+
+func getAuthors() []*Author {
+	requestUrl := baseUrl + authorPath
 	doc := getSoup(requestUrl)
-	hymnList := list.New()
+	authorNodes := QueryAll(doc, ".body ul li")
+	authors := make([]*Author, 0)
+	for _, authorNode := range authorNodes {
+		fmt.Println(authorNode)
+		pTags := QueryAll(authorNode, "p")
+		fmt.Println(len(pTags))
+		if len(pTags) < 1 {
+			fmt.Println("There's no author name here... Hm.")
+			continue
+		}
+		if len(pTags) < 2 {
+			fmt.Println("This author has no citations")
+		}
+		authorName := GetText(pTags[0])
+		credits := Map2(pTags[1:], GetInt)
+		author := &Author{
+			Name:    authorName,
+			Credits: credits,
+		}
+		authors = append(authors, author)
+	}
+	return authors
+}
+
+func getHymnInfo() []*HymnEntry {
+	noteMap := importNotes()
+	requestUrl := baseUrl + hymnListingPath
+	doc := getSoup(requestUrl)
+	hymnList := make([]*HymnEntry, 0, 0)
 	currIndex := 1
 	for _, group := range QueryAll(doc, "nav.manifest > ul.doc-map > li") {
 		groupStr := GetText(group)
@@ -67,36 +102,13 @@ func getHymnInfo() *list.List {
 				Notes:          note,
 			}
 			fmt.Println(hymn)
-			hymnList.PushBack(hymn)
+			hymnList = append(hymnList, hymn)
 			currIndex++
 			// break
 		}
 		// break
 	}
 	return hymnList
-}
-
-func saveHymns(hymns *list.List) {
-	// Create or open the file for writing
-	filename := "hymns.ndjson"
-	file, err := os.Create(filename)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer file.Close()
-
-	for hymnIter := hymns.Front(); hymnIter != nil; hymnIter = hymnIter.Next() {
-		hymn := hymnIter.Value
-		hymnJson, err := json.Marshal(hymn)
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-		file.Write(hymnJson)
-		file.WriteString("\n")
-	}
-	fmt.Printf("Hymns saved to %s\n", filename)
 }
 
 func getDescriptor(url string) string {
