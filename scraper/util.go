@@ -7,6 +7,11 @@ import (
 	"regexp"
 )
 
+func DeleteTrailingNonNumerals(input string) string {
+	re := regexp.MustCompile(`\D+$`)
+	return re.ReplaceAllString(input, "")
+}
+
 func TrimWhitespaceAndDates(input string) string {
 	re := regexp.MustCompile(`^\s+|[,\d\s–]+$`)
 	return re.ReplaceAllString(input, "")

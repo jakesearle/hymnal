@@ -37,10 +37,7 @@ type Author struct {
 }
 
 func main() {
-	authors := getAuthors()
-	SaveAuthors(authors, "authors")
-	// hymns := getHymnInfo()
-	// saveHymns(hymns, "hymns")
+	fmt.Println(GetWardHymnHistory())
 }
 
 func getAuthors() []*Author {
