@@ -29,6 +29,7 @@ type HymnEntry struct {
 	MusicAuthor    string
 	Notes          string
 	Url            string
+	LocalRating    int
 }
 
 type Author struct {
@@ -37,12 +38,12 @@ type Author struct {
 }
 
 func main() {
-	fmt.Println(GetWardHymnHistory())
+	GetConferenceHymns()
 }
 
 func getAuthors() []*Author {
 	requestUrl := baseUrl + authorPath
-	doc := getSoup(requestUrl)
+	doc := GetSoup(requestUrl)
 	authorNodes := QueryAll(doc, ".body ul li")
 	authors := make([]*Author, 0)
 	for _, authorNode := range authorNodes {
@@ -56,7 +57,7 @@ func getAuthors() []*Author {
 		if len(pTags) < 2 {
 			fmt.Println("This author has no citations")
 		}
-		authorName := GetText(pTags[0])
+		authorName := TrimLeadingAsterisks(GetText(pTags[0]))
 		credits := Map2(pTags[1:], GetInt)
 		author := &Author{
 			Name:    authorName,
@@ -69,8 +70,9 @@ func getAuthors() []*Author {
 
 func getHymnInfo() []*HymnEntry {
 	noteMap := importNotes()
+	localRatings := importLocalRatings()
 	requestUrl := baseUrl + hymnListingPath
-	doc := getSoup(requestUrl)
+	doc := GetSoup(requestUrl)
 	hymnList := make([]*HymnEntry, 0, 0)
 	currIndex := 1
 	for _, group := range QueryAll(doc, "nav.manifest > ul.doc-map > li") {
@@ -84,7 +86,6 @@ func getHymnInfo() []*HymnEntry {
 			if val, ok := noteMap[currIndex]; ok {
 				note = val
 			}
-
 			hymn := &HymnEntry{
 				Index:          currIndex,
 				Group:          groupStr,
@@ -94,22 +95,19 @@ func getHymnInfo() []*HymnEntry {
 				Descriptor:     getDescriptor(url),
 				NumVerses:      getNumVerses(url),
 				NumExtraVerses: getExtraVerses(url),
-				TextAuthor:     getTextAuthor(url),
-				MusicAuthor:    getMusicAuthor(url),
 				Notes:          note,
+				LocalRating:    localRatings[currIndex],
 			}
 			fmt.Println(hymn)
 			hymnList = append(hymnList, hymn)
 			currIndex++
-			// break
 		}
-		// break
 	}
 	return hymnList
 }
 
 func getDescriptor(url string) string {
-	doc := getSoup(url)
+	doc := GetSoup(url)
 	descriptorNode := Query(doc, "figure p.label")
 	if descriptorNode == nil {
 		return ""
@@ -118,28 +116,28 @@ func getDescriptor(url string) string {
 }
 
 func getNumVerses(url string) int {
-	doc := getSoup(url)
+	doc := GetSoup(url)
 	return len(QueryAll(doc, "div.stanza"))
 }
 
 func getExtraVerses(url string) int {
-	doc := getSoup(url)
+	doc := GetSoup(url)
 	return len(QueryAll(doc, ".verses-below-the-music div.stanza"))
 }
 
 func getTextAuthor(url string) string {
-	doc := getSoup(url)
+	doc := GetSoup(url)
 	citations := QueryAll(doc, "div.citation-info p")
 	return citations[0].LastChild.Data
 }
 
 func getMusicAuthor(url string) string {
-	doc := getSoup(url)
+	doc := GetSoup(url)
 	citations := QueryAll(doc, "div.citation-info p")
 	return citations[len(citations)-1].LastChild.Data
 }
 
-func getSoup(url string) *html.Node {
+func GetSoup(url string) *html.Node {
 	htmlString := LoadOrCacheHtml(url)
 	soup, err := html.Parse(strings.NewReader(htmlString))
 	if err != nil {
@@ -184,4 +182,9 @@ func importNotes() map[int]string {
 		interpretedMap[int(keyInt)] = fmt.Sprint(value)
 	}
 	return interpretedMap
+}
+
+func importLocalRatings() map[int]int {
+	playMap := GetWardHymnHistory()
+	return calcHymnRatingMap(playMap)
 }

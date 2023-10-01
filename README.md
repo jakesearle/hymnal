@@ -30,4 +30,5 @@ Hello, world!
 | Estimated Length Min          | Calculated                                               |
 | Estimated Length Max          | Calculated                                               |
 | Estimated Length Average      | Calculated                                               |
+| Key                           | Manually entered                                         |
 

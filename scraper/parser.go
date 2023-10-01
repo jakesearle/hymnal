@@ -8,8 +8,17 @@ import (
 	"strconv"
 )
 
-// Returns a list of each time a hymn numbers was sung in my local ward from 2016-2023
-func GetWardHymnHistory() []int {
+// Returns a map of each time a hymn numbers was sung in my local ward from 2016-2023
+// Maps from a hymn number to the number of times it was played
+func GetWardHymnHistory() map[int]int {
+	data := loadData()
+	flattenedData := flatten(data)
+	hymnNumberList := parseHymnNumber(flattenedData)
+	hymnCounts := GetCounterMap(hymnNumberList)
+	return fillEmptyHymns(hymnCounts)
+}
+
+func loadData() [][]string {
 	// open file
 	f, err := os.Open("./2016-2023-hymns.csv")
 	if err != nil {
@@ -25,9 +34,7 @@ func GetWardHymnHistory() []int {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	flattenedData := flatten(data)
-	return parseHymnNumber(flattenedData)
+	return data
 }
 
 func flatten(data [][]string) []string {
@@ -55,4 +62,13 @@ func parseHymnNumber(data []string) []int {
 		fmt.Printf("Not a number: %q\n", hymnListing)
 	}
 	return numericalListings
+}
+
+func fillEmptyHymns(numberToPlayCount map[int]int) map[int]int {
+	for i := 0; i <= NumEnglishHymns; i++ {
+		if _, exists := numberToPlayCount[i]; !exists {
+			numberToPlayCount[i] = 0
+		}
+	}
+	return numberToPlayCount
 }

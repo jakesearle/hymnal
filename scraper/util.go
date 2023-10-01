@@ -3,9 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
+	"strings"
 )
+
+func GetCounterMap(input []int) map[int]int {
+	m := make(map[int]int)
+	for _, input := range input {
+		m[input]++
+	}
+	return m
+}
 
 func DeleteTrailingNonNumerals(input string) string {
 	re := regexp.MustCompile(`\D+$`)
@@ -33,41 +43,37 @@ func Map2[T, U any](data []T, f func(T) U) []U {
 func SaveHymns(hymns []*HymnEntry, filename string) {
 	// Create or open the file for writing
 	filename += ".ndjson"
-	file, err := os.Create(filename)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer file.Close()
-
+	builder := strings.Builder{}
 	for _, item := range hymns {
 		hymnJson, err := json.Marshal(item)
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
-		file.Write(hymnJson)
-		file.WriteString("\n")
+		builder.Write(hymnJson)
+		builder.WriteString("\n")
 	}
+	Write(builder.String(), filename)
 }
 
 func SaveAuthors(authors []*Author, filename string) {
 	// Create or open the file for writing
 	filename += ".ndjson"
-	file, err := os.Create(filename)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer file.Close()
-
+	builder := strings.Builder{}
 	for _, item := range authors {
 		authorJson, err := json.Marshal(item)
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
-		file.Write(authorJson)
-		file.WriteString("\n")
+		builder.Write(authorJson)
+		builder.WriteString("\n")
+	}
+	Write(builder.String(), filename)
+}
+
+func Write(value, filename string) {
+	if err := os.WriteFile(filename, []byte(value), 0666); err != nil {
+		log.Fatal(err)
 	}
 }
