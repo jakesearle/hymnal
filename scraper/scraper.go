@@ -18,7 +18,7 @@ const authorPath = "/study/manual/using-the-hymnbook/authors-and-composers?lang=
 const hymnListingPath = "/study/manual/hymns?lang=eng"
 
 type HymnEntry struct {
-	Index          int
+	Number         int
 	Language       string
 	Name           string
 	Group          string
@@ -30,6 +30,7 @@ type HymnEntry struct {
 	Notes          string
 	Url            string
 	LocalRating    int
+	GlobalRating   int
 }
 
 type Author struct {
@@ -38,7 +39,10 @@ type Author struct {
 }
 
 func main() {
-	GetConferenceHymns()
+	hymnInfo := getHymnInfo()
+	globalRatings := importGlobalRatings(hymnInfo)
+	fmt.Println(globalRatings)
+
 }
 
 func getAuthors() []*Author {
@@ -47,9 +51,7 @@ func getAuthors() []*Author {
 	authorNodes := QueryAll(doc, ".body ul li")
 	authors := make([]*Author, 0)
 	for _, authorNode := range authorNodes {
-		fmt.Println(authorNode)
 		pTags := QueryAll(authorNode, "p")
-		fmt.Println(len(pTags))
 		if len(pTags) < 1 {
 			fmt.Println("There's no author name here... Hm.")
 			continue
@@ -77,7 +79,6 @@ func getHymnInfo() []*HymnEntry {
 	currIndex := 1
 	for _, group := range QueryAll(doc, "nav.manifest > ul.doc-map > li") {
 		groupStr := GetText(group)
-		fmt.Println(groupStr)
 		for _, hymnTitle := range QueryAll(group, "a") {
 			path := AttrOr(hymnTitle, "href", "")
 			name := GetText(hymnTitle)
@@ -87,7 +88,7 @@ func getHymnInfo() []*HymnEntry {
 				note = val
 			}
 			hymn := &HymnEntry{
-				Index:          currIndex,
+				Number:         currIndex,
 				Group:          groupStr,
 				Language:       "en",
 				Name:           name,
@@ -98,7 +99,6 @@ func getHymnInfo() []*HymnEntry {
 				Notes:          note,
 				LocalRating:    localRatings[currIndex],
 			}
-			fmt.Println(hymn)
 			hymnList = append(hymnList, hymn)
 			currIndex++
 		}
@@ -187,4 +187,12 @@ func importNotes() map[int]string {
 func importLocalRatings() map[int]int {
 	playMap := GetWardHymnHistory()
 	return calcHymnRatingMap(playMap)
+}
+
+func importGlobalRatings(hymnInfo []*HymnEntry) map[int]int {
+	confNames := GetConferenceHymns()
+	numbers := GetHymnNumbers(confNames, hymnInfo)
+	numberCounts := fillEmptyHymns(GetCounterMap(numbers))
+	fmt.Println(numberCounts)
+	return numberCounts
 }

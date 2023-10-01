@@ -77,3 +77,9 @@ func Write(value, filename string) {
 		log.Fatal(err)
 	}
 }
+
+func CaselessPunctionless(in string) string {
+	in = strings.ToLower(in)
+	re := regexp.MustCompile(`[^\w\s]+|\s\((congregational|choir|men)\)`)
+	return re.ReplaceAllString(in, "")
+}

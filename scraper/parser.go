@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -57,15 +56,13 @@ func parseHymnNumber(data []string) []int {
 		hymnListing = DeleteTrailingNonNumerals(hymnListing)
 		if num, err := strconv.Atoi(hymnListing); err == nil {
 			numericalListings = append(numericalListings, num)
-			continue
 		}
-		fmt.Printf("Not a number: %q\n", hymnListing)
 	}
 	return numericalListings
 }
 
 func fillEmptyHymns(numberToPlayCount map[int]int) map[int]int {
-	for i := 0; i <= NumEnglishHymns; i++ {
+	for i := 1; i <= NumEnglishHymns; i++ {
 		if _, exists := numberToPlayCount[i]; !exists {
 			numberToPlayCount[i] = 0
 		}
