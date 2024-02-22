@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -38,11 +39,25 @@ type Author struct {
 	Credits []int
 }
 
-func main() {
-	hymnInfo := getHymnInfo()
-	globalRatings := importGlobalRatings(hymnInfo)
-	fmt.Println(globalRatings)
+type AllRatings struct {
+	LocalRatings  map[int]int `json:"LocalRatings"`
+	GlobalRatings map[int]int `json:"GlobalRatings"`
+}
 
+func main() {
+	ratings := LoadOrCacheRatings()
+	printData(ratings)
+}
+
+func printData(ratings AllRatings) {
+	combined := make(map[int]int, 0)
+	for k, v := range ratings.GlobalRatings {
+		combined[k] = v
+	}
+	for k, v := range ratings.LocalRatings {
+		combined[k] += v
+	}
+	printValues(combined)
 }
 
 func getAuthors() []*Author {
@@ -193,6 +208,28 @@ func importGlobalRatings(hymnInfo []*HymnEntry) map[int]int {
 	confNames := GetConferenceHymns()
 	numbers := GetHymnNumbers(confNames, hymnInfo)
 	numberCounts := fillEmptyHymns(GetCounterMap(numbers))
-	fmt.Println(numberCounts)
 	return numberCounts
+}
+
+func printValues(popularity map[int]int) {
+	// Convert the map to a slice of key-value pairs
+	var pairs []Pair
+	for k, v := range popularity {
+		pairs = append(pairs, Pair{k, v})
+	}
+
+	// Sort the slice by value in descending order
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].Value > pairs[j].Value
+	})
+
+	// Print the sorted map
+	for _, pair := range pairs {
+		fmt.Printf("%d: %d\n", pair.Key, pair.Value)
+	}
+}
+
+type Pair struct {
+	Key   int
+	Value int
 }

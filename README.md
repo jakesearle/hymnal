@@ -1,6 +1,7 @@
 # README
 
-Hello, world!
+`go get .` to install
+`go run .` to run
 
 ## Schema
 
